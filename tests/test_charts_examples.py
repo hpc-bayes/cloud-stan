@@ -19,6 +19,16 @@ def test_helm_values_files_are_valid_yaml():
         assert isinstance(parsed, dict), path
 
 
+def test_helm_charts_use_exact_chart_yaml_name():
+    chart_files = [
+        ROOT / "stan_dask_chart" / "Chart.yaml",
+        ROOT / "stan_ray_chart" / "ray_cluster" / "Chart.yaml",
+    ]
+
+    for path in chart_files:
+        assert path.exists(), path
+
+
 def test_chart_templates_do_not_contain_placeholder_ellipses():
     template_files = [
         *sorted((ROOT / "stan_dask_chart" / "templates").glob("*.yaml")),

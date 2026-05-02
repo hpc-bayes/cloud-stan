@@ -52,6 +52,12 @@ jobs:
       - name: Set up Helm
         uses: azure/setup-helm@v4
 
+      - name: Normalize Dask chart metadata filename
+        run: |
+          if [ ! -f stan_dask_chart/Chart.yaml ] && [ -f stan_dask_chart/chart.yaml ]; then
+            cp stan_dask_chart/chart.yaml stan_dask_chart/Chart.yaml
+          fi
+
       - name: Render Dask chart
         run: helm template cloud-stan-dask ./stan_dask_chart --values examples/cloud/aws/dask-values.yaml
 
