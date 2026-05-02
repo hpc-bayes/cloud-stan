@@ -1,0 +1,25 @@
+serviceAccount:
+  create: true
+  annotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::123456789012:role/cloud-stan-runner
+
+daskScheduler:
+  image:
+    repository: 123456789012.dkr.ecr.us-east-1.amazonaws.com/cloud-stan-dask
+    tag: "2026.05.0"
+
+daskWorker:
+  image:
+    repository: 123456789012.dkr.ecr.us-east-1.amazonaws.com/cloud-stan-dask
+    tag: "2026.05.0"
+  replicas: 4
+
+stanJob:
+  image:
+    repository: 123456789012.dkr.ecr.us-east-1.amazonaws.com/cloud-stan
+    tag: "2026.05.0"
+  env:
+    - name: CLOUD_STAN_OUTPUT_URI
+      value: s3://your-cloud-stan-bucket/results
+    - name: AWS_REGION
+      value: us-east-1

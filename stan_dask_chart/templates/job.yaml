@@ -1,0 +1,47 @@
+{{- if .Values.stanJob.enabled }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "stan-dask-chart.fullname" . }}-job
+  labels:
+    {{- include "stan-dask-chart.labels" . | nindent 4 }}
+    app.kubernetes.io/component: stan-job
+spec:
+  backoffLimit: {{ .Values.stanJob.backoffLimit }}
+  template:
+    metadata:
+      labels:
+        {{- include "stan-dask-chart.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: stan-job
+        {{- with .Values.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      serviceAccountName: {{ include "stan-dask-chart.serviceAccountName" . }}
+      restartPolicy: {{ .Values.stanJob.restartPolicy }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: cloud-stan
+          image: "{{ .Values.stanJob.image.repository }}:{{ .Values.stanJob.image.tag }}"
+          imagePullPolicy: {{ .Values.stanJob.image.pullPolicy }}
+          command:
+            {{- toYaml .Values.stanJob.command | nindent 12 }}
+          env:
+            - name: DASK_SCHEDULER_ADDRESS
+              value: tcp://{{ include "stan-dask-chart.fullname" . }}-scheduler:{{ .Values.daskScheduler.service.schedulerPort }}
+            {{- with .Values.extraEnv }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+            {{- with .Values.stanJob.env }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          resources:
+            {{- toYaml .Values.stanJob.resources | nindent 12 }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+{{- end }}

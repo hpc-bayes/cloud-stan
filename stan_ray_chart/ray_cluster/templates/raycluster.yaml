@@ -1,0 +1,111 @@
+apiVersion: ray.io/v1
+kind: RayCluster
+metadata:
+  name: {{ include "ray-cluster.fullname" . }}
+  labels:
+    {{- include "ray-cluster.labels" . | nindent 4 }}
+spec:
+  rayVersion: {{ .Values.ray.version | quote }}
+  enableInTreeAutoscaling: {{ .Values.ray.autoscaler.enabled }}
+  headGroupSpec:
+    serviceType: {{ .Values.ray.head.serviceType }}
+    rayStartParams:
+      {{ if .Values.ray.head.rayStartParams }}
+      {{- toYaml .Values.ray.head.rayStartParams | nindent 6 }}
+      {{ else }}
+      {}
+      {{ end }}
+    template:
+      {{- with .Values.podLabels }}
+      metadata:
+        labels:
+          {{- toYaml . | nindent 10 }}
+      {{- end }}
+      spec:
+        serviceAccountName: {{ include "ray-cluster.serviceAccountName" . }}
+        securityContext:
+          {{- toYaml .Values.podSecurityContext | nindent 10 }}
+        {{- with .Values.imagePullSecrets }}
+        imagePullSecrets:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+        containers:
+          - name: ray-head
+            image: "{{ .Values.ray.image.repository }}:{{ .Values.ray.image.tag }}"
+            imagePullPolicy: {{ .Values.ray.image.pullPolicy }}
+            ports:
+              - containerPort: 6379
+                name: gcs
+              - containerPort: 8265
+                name: dashboard
+              - containerPort: 10001
+                name: client
+            resources:
+              {{- toYaml .Values.ray.head.resources | nindent 14 }}
+            securityContext:
+              {{- toYaml .Values.securityContext | nindent 14 }}
+            {{- with .Values.extraEnv }}
+            env:
+              {{- toYaml . | nindent 14 }}
+            {{- end }}
+        {{- with .Values.ray.nodeSelector }}
+        nodeSelector:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+        {{- with .Values.ray.affinity }}
+        affinity:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+        {{- with .Values.ray.tolerations }}
+        tolerations:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+  workerGroupSpecs:
+    - groupName: worker
+      replicas: {{ .Values.ray.workers.replicas }}
+      minReplicas: {{ .Values.ray.workers.minReplicas }}
+      maxReplicas: {{ .Values.ray.workers.maxReplicas }}
+      rayStartParams:
+        {{ if .Values.ray.workers.rayStartParams }}
+        {{- toYaml .Values.ray.workers.rayStartParams | nindent 8 }}
+        {{ else }}
+        {}
+        {{ end }}
+      template:
+        {{- with .Values.podLabels }}
+        metadata:
+          labels:
+            {{- toYaml . | nindent 12 }}
+        {{- end }}
+        spec:
+          serviceAccountName: {{ include "ray-cluster.serviceAccountName" . }}
+          securityContext:
+            {{- toYaml .Values.podSecurityContext | nindent 12 }}
+          {{- with .Values.imagePullSecrets }}
+          imagePullSecrets:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          containers:
+            - name: ray-worker
+              image: "{{ .Values.ray.image.repository }}:{{ .Values.ray.image.tag }}"
+              imagePullPolicy: {{ .Values.ray.image.pullPolicy }}
+              resources:
+                {{- toYaml .Values.ray.workers.resources | nindent 16 }}
+              securityContext:
+                {{- toYaml .Values.securityContext | nindent 16 }}
+              {{- with .Values.extraEnv }}
+              env:
+                {{- toYaml . | nindent 16 }}
+              {{- end }}
+          {{- with .Values.ray.nodeSelector }}
+          nodeSelector:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.ray.affinity }}
+          affinity:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.ray.tolerations }}
+          tolerations:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}

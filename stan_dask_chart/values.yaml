@@ -1,23 +1,86 @@
-# Default values for stan-dask-chart.
-# This is a YAML-formatted file.
-# Declare variables to be passed into your templates.
+nameOverride: ""
+fullnameOverride: ""
 
-stanApp:
-  replicaCount: 1
-  image:
-    repository: your-repository/stan-app
-    pullPolicy: IfNotPresent
-    tag: "latest"
+imagePullSecrets: []
+podLabels: {}
+
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+podSecurityContext:
+  runAsNonRoot: true
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+  readOnlyRootFilesystem: false
+  runAsNonRoot: true
 
 daskScheduler:
   image:
     repository: daskdev/dask
     pullPolicy: IfNotPresent
-    tag: "latest"
+    tag: "2024.1.0-py3.11"
+  replicas: 1
+  service:
+    type: ClusterIP
+    schedulerPort: 8786
+    dashboardPort: 8787
+  resources:
+    requests:
+      cpu: "250m"
+      memory: "512Mi"
+    limits:
+      cpu: "1"
+      memory: "2Gi"
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
 
 daskWorker:
-  replicaCount: 3
   image:
     repository: daskdev/dask
     pullPolicy: IfNotPresent
+    tag: "2024.1.0-py3.11"
+  replicas: 3
+  threadsPerWorker: 1
+  memoryLimit: "2GiB"
+  resources:
+    requests:
+      cpu: "500m"
+      memory: "1Gi"
+    limits:
+      cpu: "2"
+      memory: "4Gi"
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
+stanJob:
+  enabled: true
+  backoffLimit: 1
+  restartPolicy: Never
+  image:
+    repository: ghcr.io/your-org/cloud-stan
+    pullPolicy: IfNotPresent
     tag: "latest"
+  command:
+    - python
+    - -m
+    - examples.run_cmdstanpy_dask
+  env: []
+  resources:
+    requests:
+      cpu: "250m"
+      memory: "512Mi"
+    limits:
+      cpu: "1"
+      memory: "2Gi"
+
+extraEnv: []

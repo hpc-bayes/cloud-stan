@@ -1,0 +1,23 @@
+serviceAccount:
+  create: true
+  annotations:
+    iam.gke.io/gcp-service-account: cloud-stan-runner@your-project.iam.gserviceaccount.com
+
+ray:
+  image:
+    repository: us-central1-docker.pkg.dev/your-project/cloud-stan/cloud-stan-ray
+    tag: "2026.05.0"
+  workers:
+    replicas: 3
+    minReplicas: 1
+    maxReplicas: 8
+
+stanJob:
+  image:
+    repository: us-central1-docker.pkg.dev/your-project/cloud-stan/cloud-stan
+    tag: "2026.05.0"
+  env:
+    - name: CLOUD_STAN_OUTPUT_URI
+      value: gs://your-cloud-stan-bucket/results
+    - name: GOOGLE_CLOUD_PROJECT
+      value: your-project

@@ -1,9 +1,0 @@
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: {{ include "stan-dask-chart.fullname" . }}-stan-app
-  labels:
-    {{- include "stan-dask-chart.labels" . | nindent 4 }}
-spec:
-  replicas: {{ .Values.stanApp.replicaCount }}
-  ...

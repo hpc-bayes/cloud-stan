@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "stan-dask-chart.fullname" . }}-scheduler
+  labels:
+    {{- include "stan-dask-chart.labels" . | nindent 4 }}
+    app.kubernetes.io/component: scheduler
+spec:
+  replicas: {{ .Values.daskScheduler.replicas }}
+  selector:
+    matchLabels:
+      {{- include "stan-dask-chart.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: scheduler
+  template:
+    metadata:
+      labels:
+        {{- include "stan-dask-chart.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: scheduler
+        {{- with .Values.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      serviceAccountName: {{ include "stan-dask-chart.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: scheduler
+          image: "{{ .Values.daskScheduler.image.repository }}:{{ .Values.daskScheduler.image.tag }}"
+          imagePullPolicy: {{ .Values.daskScheduler.image.pullPolicy }}
+          command:
+            - dask-scheduler
+          ports:
+            - name: scheduler
+              containerPort: 8786
+            - name: dashboard
+              containerPort: 8787
+          resources:
+            {{- toYaml .Values.daskScheduler.resources | nindent 12 }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          {{- with .Values.extraEnv }}
+          env:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+      {{- with .Values.daskScheduler.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.daskScheduler.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.daskScheduler.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

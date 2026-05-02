@@ -1,27 +1,82 @@
-rayHead:
-  replicas: 1
-  serviceType: ClusterIP
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+imagePullSecrets: []
+podLabels: {}
+
+ray:
+  image:
+    repository: rayproject/ray
+    tag: "2.46.0-py311"
+    pullPolicy: IfNotPresent
+  version: "2.46.0"
+  head:
+    serviceType: ClusterIP
+    rayStartParams:
+      dashboard-host: "0.0.0.0"
+      num-cpus: "0"
+    resources:
+      requests:
+        cpu: "500m"
+        memory: "1Gi"
+      limits:
+        cpu: "2"
+        memory: "4Gi"
+  workers:
+    replicas: 2
+    minReplicas: 1
+    maxReplicas: 5
+    rayStartParams: {}
+    resources:
+      requests:
+        cpu: "1"
+        memory: "2Gi"
+      limits:
+        cpu: "4"
+        memory: "8Gi"
+  autoscaler:
+    enabled: true
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
+podSecurityContext:
+  runAsNonRoot: true
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+  readOnlyRootFilesystem: false
+  runAsNonRoot: true
+
+stanJob:
+  enabled: true
+  backoffLimit: 1
+  restartPolicy: Never
+  image:
+    repository: ghcr.io/your-org/cloud-stan
+    pullPolicy: IfNotPresent
+    tag: "latest"
+  command:
+    - python
+    - -m
+    - examples.run_cmdstanpy_ray
+  env: []
   resources:
-    limits:
-      cpu: "1000m"
-      memory: "1024Mi"
     requests:
-      cpu: "100m"
+      cpu: "250m"
       memory: "512Mi"
-
-rayWorker:
-  replicas: 3
-  resources:
     limits:
-      cpu: "1000m"
-      memory: "1024Mi"
-    requests:
-      cpu: "100m"
-      memory: "512Mi"
+      cpu: "1"
+      memory: "2Gi"
 
-image:
-  repository: rayproject/ray
-  tag: latest
-  pullPolicy: IfNotPresent
-
-# Include other configurations like node selectors, annotations, etc.
+extraEnv: []

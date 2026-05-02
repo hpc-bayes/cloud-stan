@@ -1,8 +1,0 @@
-apiVersion: v1
-kind: Service
-metadata:
-  name: {{ include "stan-dask-chart.fullname" . }}-stan-app
-  labels:
-    {{- include "stan-dask-chart.labels" . | nindent 4 }}
-spec:
-  ...

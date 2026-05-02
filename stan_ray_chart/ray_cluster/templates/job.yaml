@@ -1,0 +1,48 @@
+{{- if .Values.stanJob.enabled }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "ray-cluster.fullname" . }}-job
+  labels:
+    {{- include "ray-cluster.labels" . | nindent 4 }}
+    app.kubernetes.io/component: stan-job
+spec:
+  backoffLimit: {{ .Values.stanJob.backoffLimit }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ include "ray-cluster.name" . }}
+        app.kubernetes.io/instance: {{ .Release.Name }}
+        app.kubernetes.io/component: stan-job
+        {{- with .Values.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      serviceAccountName: {{ include "ray-cluster.serviceAccountName" . }}
+      restartPolicy: {{ .Values.stanJob.restartPolicy }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: cloud-stan
+          image: "{{ .Values.stanJob.image.repository }}:{{ .Values.stanJob.image.tag }}"
+          imagePullPolicy: {{ .Values.stanJob.image.pullPolicy }}
+          command:
+            {{- toYaml .Values.stanJob.command | nindent 12 }}
+          env:
+            - name: RAY_ADDRESS
+              value: ray://{{ include "ray-cluster.fullname" . }}-head-svc:10001
+            {{- with .Values.extraEnv }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+            {{- with .Values.stanJob.env }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          resources:
+            {{- toYaml .Values.stanJob.resources | nindent 12 }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+{{- end }}
