@@ -255,8 +255,9 @@ using them.
 The repository includes GitHub Actions workflows:
 
 - `.github/workflows/ci.yml` runs unit tests on Python 3.11, 3.12, and 3.13,
-  compiles Python sources, lints/renders Helm charts, and builds the Docker
-  image without pushing it.
+  compiles Python sources, renders Helm charts without linting them, runs
+  lightweight chart/example sanity tests, and builds the Docker image without
+  pushing it.
 - `.github/workflows/docker-publish.yml` publishes images to GitHub Container
   Registry on `main`, version tags such as `v0.1.0`, or manual dispatch.
 
