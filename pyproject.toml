@@ -7,7 +7,7 @@ name = "cloud-stan"
 version = "0.1.0"
 description = "Run CmdStanPy and BridgeStan programs on Dask and Ray."
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.11"
 dependencies = [
     "dask>=2022.7.0",
     "distributed>=2022.7.0",
@@ -20,7 +20,7 @@ dependencies = [
 cmdstanpy = ["cmdstanpy"]
 bridgestan = ["bridgestan"]
 ray = ["ray>=2"]
-test = ["pytest"]
+test = ["pytest", "PyYAML"]
 all = ["cmdstanpy", "bridgestan", "ray>=2", "pytest"]
 
 [tool.setuptools]

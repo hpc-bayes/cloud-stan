@@ -1,51 +1,50 @@
-# Use a Python 3.10 base image from the Python Docker Hub repository
-FROM python:3.10-slim
+# syntax=docker/dockerfile:1.7
 
-# Set the working directory in the container
-WORKDIR /usr/src/app
+FROM python:3.11-slim AS runtime
 
-# Set labels for metadata
-LABEL authors="Brian Parbhu"
+ARG INSTALL_EXTRAS="cmdstanpy,bridgestan,ray"
+ARG INSTALL_CMDSTAN="false"
+ARG CMDSTAN_VERSION=""
 
-# Install system dependencies required for all Stan interfaces and additional tools
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PIP_NO_CACHE_DIR=1 \
+    CLOUD_STAN_HOME=/app
+
+LABEL org.opencontainers.image.title="cloud-stan" \
+      org.opencontainers.image.description="Run CmdStanPy and BridgeStan workloads on Dask and Ray." \
+      org.opencontainers.image.source="https://github.com/your-org/cloud-stan" \
+      org.opencontainers.image.licenses="GPL-3.0"
+
 RUN apt-get update && apt-get install -y --no-install-recommends \
         build-essential \
-        curl \
         ca-certificates \
+        curl \
         git \
-        cmake \
-        python3-dev \
-        libeigen3-dev \
-        && apt-get clean && rm -rf /var/lib/apt/lists/*
+        make \
+        g++ \
+        pkg-config \
+    && rm -rf /var/lib/apt/lists/*
 
-# Upgrade pip to the latest version
-RUN pip install --upgrade pip
+WORKDIR ${CLOUD_STAN_HOME}
 
-# Install the required Stan interfaces and their dependencies
-# For CmdStanPy
-RUN RUN pip install --upgrade cmdstanpy[all]
-RUN python -m cmdstanpy.install_cmdstan
+COPY pyproject.toml README.md ./
+COPY src ./src
+COPY examples ./examples
 
-# For PyStan (Stan interface for Python, similar to CmdStanPy but different)
-# PyStan requires httpstan, so it will be installed as a dependency
-RUN pip install pystan
+RUN python -m pip install --upgrade pip setuptools wheel \
+    && python -m pip install ".[${INSTALL_EXTRAS}]"
 
-# For BridgeStan
-RUN pip install bridgestan
+RUN if [ "${INSTALL_CMDSTAN}" = "true" ]; then \
+      python -m cmdstanpy.install_cmdstan \
+        --dir /opt \
+        ${CMDSTAN_VERSION:+--version "${CMDSTAN_VERSION}"} \
+        --cores 2; \
+    fi
 
-# Install Dask, distributed, and Ray
-RUN pip install dask distributed ray
+RUN useradd --create-home --shell /usr/sbin/nologin cloudstan \
+    && chown -R cloudstan:cloudstan ${CLOUD_STAN_HOME} /opt
 
-# Copy the current directory contents into the container at /usr/src/app
-COPY . .
+USER cloudstan
 
-# Install any other Python dependencies from your requirements.txt
-RUN pip install -r requirements.txt
-
-# Set environment variables for CmdStan location
-ENV CMDSTAN=/root/.cmdstan/cmdstan-2.26.1
-ENV CMDSTANPY_DIR=/usr/local/lib/python3.10/dist-packages/cmdstanpy
-ENV AR=/usr/bin/ar
-
-# Set the default command for the container
-CMD ["python", "./your-daemon-or-script.py"]
+CMD ["python", "-c", "import cloud_stan; print(f'cloud-stan {cloud_stan.__version__} ready')"]

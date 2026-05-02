@@ -250,6 +250,40 @@ The AWS, GCP, and Azure values files are templates. Replace the image
 repositories, identity annotations, regions, project IDs, and output URIs before
 using them.
 
+## CI/CD and Docker
+
+The repository includes GitHub Actions workflows:
+
+- `.github/workflows/ci.yml` runs unit tests on Python 3.11, 3.12, and 3.13,
+  compiles Python sources, lints/renders Helm charts, and builds the Docker
+  image without pushing it.
+- `.github/workflows/docker-publish.yml` publishes images to GitHub Container
+  Registry on `main`, version tags such as `v0.1.0`, or manual dispatch.
+
+Build the image locally:
+
+```bash
+docker build \
+  --build-arg INSTALL_EXTRAS=cmdstanpy,bridgestan,ray \
+  --build-arg INSTALL_CMDSTAN=false \
+  -t cloud-stan:dev .
+```
+
+Build with CmdStan included:
+
+```bash
+docker build \
+  --build-arg INSTALL_EXTRAS=cmdstanpy,bridgestan,ray \
+  --build-arg INSTALL_CMDSTAN=true \
+  --build-arg CMDSTAN_VERSION=2.37.0 \
+  -t cloud-stan:cmdstan .
+```
+
+The default image installs the Python interfaces and cluster runtime packages,
+but does not download CmdStan. That keeps CI builds lighter. Production images
+should pin package versions and usually preinstall CmdStan or BridgeStan build
+artifacts so worker pods do not compile everything at startup.
+
 ## Example Entrypoints
 
 The Helm job examples point at these modules:
