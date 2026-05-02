@@ -1,4 +1,13 @@
 from dask.distributed import as_completed
+import dask
+from dask.distributed import Client, as_completed
+from dask import delayed
+import numpy as np
+
+# Assuming CmdStanPy, PyStan, and BridgeStan are already installed and imported
+from cmdstanpy import CmdStanModel
+import pystan
+import bridgestan
 
 class DistributedStanModel:
     def __init__(self, model_code, dask_client):
@@ -35,4 +44,46 @@ class DistributedStanModel:
         # Logic to combine results from all model fits
         pass
 
+    @delayed
+    def fit_cmdstanpy_delayed(model_code, data, iterations):
+        # Logic to fit Stan model using CmdStanPy
+        pass
+
+    @delayed
+    def fit_pystan_delayed(model_code, data, iterations):
+        # Logic to fit Stan model using PyStan
+        pass
+
+    @delayed
+    def fit_bridgestan_delayed(model_code, data, iterations):
+        # Logic to fit Stan model using BridgeStan
+        pass
+
+    # Part 6: Testing Function
+    def test_distributed_vs_delayed(data, iterations):
+        # Test DistributedStanModel with CmdStanPy
+        distributed_cmdstanpy_model = DistributedStanModel(stan_model_code, client)
+        distributed_cmdstanpy_result = distributed_cmdstanpy_model.fit(data, iterations)
+
+        # Test dask.delayed method with CmdStanPy
+        delayed_cmdstanpy_result = fit_cmdstanpy_delayed(stan_model_code, {'N': len(data), 'y': data}, iterations)
+        delayed_cmdstanpy_result = delayed_cmdstanpy_result.compute()
+
+        # Repeat the above two steps for PyStan and BridgeStan
+        # ...
+
+        return (distributed_cmdstanpy_result, delayed_cmdstanpy_result,
+                distributed_pystan_result, delayed_pystan_result,
+                distributed_bridgestan_result, delayed_bridgestan_result)
+
     # Add more methods as needed for the distributed model fitting
+if __name__ == "__main__":
+    iterations = 1000  # Set the number of iterations for Stan's sampling
+    results = test_distributed_vs_delayed(y, iterations)
+
+    # Compare results for each interface
+    for result in results:
+        print(result)
+
+    # Shutdown Dask client
+    client.shutdown()

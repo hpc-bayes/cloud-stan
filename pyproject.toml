@@ -1,0 +1,36 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cloud-stan"
+version = "0.1.0"
+description = "Run CmdStanPy and BridgeStan programs on Dask and Ray."
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = [
+    "dask>=2022.7.0",
+    "distributed>=2022.7.0",
+    "numpy>=1.18",
+    "pandas>=1.0",
+    "python-dotenv",
+]
+
+[project.optional-dependencies]
+cmdstanpy = ["cmdstanpy"]
+bridgestan = ["bridgestan"]
+ray = ["ray>=2"]
+test = ["pytest"]
+all = ["cmdstanpy", "bridgestan", "ray>=2", "pytest"]
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+"*" = ["stan/*.stan"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]

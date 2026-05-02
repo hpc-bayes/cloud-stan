@@ -1,37 +1,26 @@
-# Stan interface
-git+https://github.com/roualdes/bridgestan.git#subdirectory=python
-cmdstanpy
-pystan>=2.0,<3.0
-httpstan
-
-# Dask for distributed computing
-dask>=2023.3.0
-distributed>=2023.3.0
-dask-cloudprovider  # For Dask's cloud provider integrations
-
-# Integration with Ray (if you decided to include it)
-ray>=1.0.0
-
-# Cloud providers' SDKs (only include those that you plan to support)
-boto3  # For AWS
-google-cloud-storage  # For GCP
-azure-storage-blob  # For Azure
-
-# Utilities for data handling and operations
-pandas>=1.0
+# Core execution layer
+dask>=2022.7.0
+distributed>=2022.7.0
 numpy>=1.18
+pandas>=1.0
+python-dotenv
 
-# Logging and configuration
-python-dotenv  # For loading environment variables
-loguru  # For enhanced logging capabilities
+# Stan interfaces
+cmdstanpy
+bridgestan
 
-# Serialization for model data
-pyarrow  # For efficient data serialization
+# Optional Ray execution
+ray>=2
 
-# Type checking and linting (optional, for development purposes)
-mypy
-flake8
-black
+# Optional cloud integrations for future cluster provisioning
+dask-cloudprovider
+boto3
+google-cloud-storage
+azure-storage-blob
+pyarrow
 
-# Testing (optional, for development purposes)
+# Development
 pytest
+black
+flake8
+mypy
